@@ -4,15 +4,10 @@ import os
 import shutil
 import sys
 
-from logging import DEBUG, INFO
-
 from doodbalib import (
     addons_config,
     CLEAN,
-    CORE_DIR,
-    is_inside,
     logger,
-    MANIFESTS,
     ODOO_DIR,
     PRIVATE_DIR,
     SRC_DIR,
