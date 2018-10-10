@@ -8,10 +8,11 @@ services:
         ODOO_VERSION: $ODOO_MINOR
     tty: true
     environment:
-      PGUSER: another_odoo
-      PGPASSWORD: anotherodoopassword
-      PGHOST: postgresql
+      LOG_LEVEL: DEBUG
       PGDATABASE: ${DBNAME:-prod}
+      PGHOST: postgresql
+      PGPASSWORD: anotherodoopassword
+      PGUSER: another_odoo
     depends_on:
       - postgresql
     volumes:

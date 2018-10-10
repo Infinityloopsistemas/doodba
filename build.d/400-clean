@@ -4,12 +4,15 @@ import os
 import shutil
 import sys
 
+from logging import DEBUG, INFO
+
 from doodbalib import (
     addons_config,
     CLEAN,
     CORE_DIR,
     is_inside,
     logger,
+    MANIFESTS,
     ODOO_DIR,
     SRC_DIR,
 )
@@ -21,7 +24,12 @@ if not CLEAN:
 addon_paths = [
     os.path.realpath(os.path.join(SRC_DIR, repo, addon))
     for addon, repo in addons_config(False)]
+logger.debug("Addon paths enabled: %s", addon_paths)
 for directory, subdirectories, subfiles in os.walk(SRC_DIR, False):
+    logger.debug("Checking for cleanup directory %s", directory)
+    # Skip main src directory
+    if directory == SRC_DIR:
+        continue
     # Skip odoo source code
     if is_inside(directory, ODOO_DIR) and not is_inside(directory, CORE_DIR):
         continue
@@ -30,5 +38,9 @@ for directory, subdirectories, subfiles in os.walk(SRC_DIR, False):
         if is_inside(directory, addon_path):
             continue
     # Remove every other directory
-    logger.info("Removing directory %s", directory)
+    logger.log(
+        INFO if any(m in subfiles for m in MANIFESTS) else DEBUG,
+        "Removing directory %s",
+        directory,
+    )
     shutil.rmtree(directory)

@@ -189,10 +189,9 @@ def is_inside(child, parent, or_equal=True):
     :return bool:
         Indicates if it really is a subfile.
     """
-    parent += os.path.sep
-    if or_equal:
-        child += os.path.sep
-    return child.startswith(parent)
+    if or_equal and parent == child:
+        return True
+    return child.startswith(parent + os.path.sep)
 
 
 try:
