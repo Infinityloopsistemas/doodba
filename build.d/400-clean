@@ -21,25 +21,37 @@ if not CLEAN:
     logger.warning("Not cleaning garbage")
     sys.exit()
 
-addon_paths = [
-    os.path.realpath(os.path.join(SRC_DIR, repo, addon))
-    for addon, repo in addons_config(False)]
-logger.debug("Addon paths enabled: %s", addon_paths)
-for directory, subdirectories, subfiles in os.walk(SRC_DIR, False):
+# Get the enabled paths
+repos_addons = {}
+for addon, repo in addons_config(False):
+    repo_path = os.path.realpath(os.path.join(SRC_DIR, repo))
+    repos_addons.setdefault(repo_path, set())
+    repos_addons[repo_path].add(addon)
+logger.debug("Addon paths enabled: %s", repos_addons)
+
+# Traverse src dir and remove anything not explicitly enabled
+for directory, subdirectories, subfiles in os.walk(SRC_DIR):
     logger.debug("Checking for cleanup directory %s", directory)
     # Skip main src directory
     if directory == SRC_DIR:
         continue
-    # Skip odoo source code
-    if is_inside(directory, ODOO_DIR) and not is_inside(directory, CORE_DIR):
+    # Inside the odoo dir, skip all but addons dir
+    if directory == ODOO_DIR:
+        subdirectories[:] = ["addons"]
         continue
-    # Skip addons enabled in addons.yaml
-    if any(is_inside(directory, addon) for addon in addon_paths):
+    try:
+        # Get addons enalbed in current directory
+        enabled_addons = repos_addons[directory]
+    except KeyError:
+        # This isn't a repo; is there anything inside to preserve?
+        if any(is_inside(repo, directory) for repo in repos_addons):
+            # Then, let's walk in; we'll remove later if needed
+            continue
+    else:
+        # This is an addons repo; do not walk into the enabled ones
+        for addon in enabled_addons:
+            subdirectories.remove(addon)
         continue
     # Remove every other directory
-    logger.log(
-        INFO if any(m in subfiles for m in MANIFESTS) else DEBUG,
-        "Removing directory %s",
-        directory,
-    )
+    logger.info("Removing directory %s", directory)
     shutil.rmtree(directory)
