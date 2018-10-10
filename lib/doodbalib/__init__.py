@@ -41,6 +41,7 @@ PRIVATE = "private"
 CORE = "odoo/addons"
 PRIVATE_DIR = os.path.join(SRC_DIR, PRIVATE)
 CORE_DIR = os.path.join(SRC_DIR, CORE)
+ODOO_DIR = os.path.join(SRC_DIR, "odoo")
 ODOO_VERSION = os.environ["ODOO_VERSION"]
 MANIFESTS = ("__manifest__.py", "__openerp__.py")
 if ODOO_VERSION in {"8.0", "9.0"}:
@@ -170,6 +171,28 @@ def addons_config(filtered=True, strict=False):
                 u"Addon {} defined in several repos {}".format(addon, repos),
             )
         yield addon, repos.pop()
+
+
+def is_inside(child, parent, or_equal=True):
+    """Check that :param:`child` is inside of :param:`parent`.
+
+    :param str child:
+        Full path to a file that should be inside :param:`parent`.
+
+    :param str parent:
+        Full path to a directory that should contain :param:`child`.
+
+    :param bool or_equal:
+        Will return ``True`` if :param:`child` and :param:`parent`
+        are the same directory.
+
+    :return bool:
+        Indicates if it really is a subfile.
+    """
+    parent += os.path.sep
+    if or_equal:
+        child += os.path.sep
+    return child.startswith(parent)
 
 
 try:

@@ -4,37 +4,31 @@ import os
 import shutil
 import sys
 
-from doodbalib import addons_config, CORE, CLEAN, logger, PRIVATE, SRC_DIR
+from doodbalib import (
+    addons_config,
+    CLEAN,
+    CORE_DIR,
+    is_inside,
+    logger,
+    ODOO_DIR,
+    SRC_DIR,
+)
 
 if not CLEAN:
     logger.warning("Not cleaning garbage")
     sys.exit()
 
-addons = set(addons_config(False))
-repos = {addon[1] for addon in addons} | {CORE, PRIVATE}
-for directory in os.listdir(SRC_DIR):
-    # Special directories must be preserved
-    if directory == "odoo":
-        directory = CORE
-
-    # Skip regular files
-    full = os.path.join(SRC_DIR, directory)
-    if not os.path.isdir(full):
+addon_paths = [
+    os.path.realpath(os.path.join(SRC_DIR, repo, addon))
+    for addon, repo in addons_config(False)]
+for directory, subdirectories, subfiles in os.walk(SRC_DIR, False):
+    # Skip odoo source code
+    if is_inside(directory, ODOO_DIR) and not is_inside(directory, CORE_DIR):
         continue
-
-    # Remove directories not listed in addons.yaml
-    if directory not in repos:
-        logger.info("Removing directory %s", full)
-        shutil.rmtree(full)
-        continue
-
-    # Traverse addons
-    for subdirectory in os.listdir(full):
-        subfull = os.path.join(full, subdirectory)
-        # Skip regular files
-        if not os.path.isdir(subfull):
+    # Skip addons enabled in addons.yaml
+    for addon_path in addon_paths:
+        if is_inside(directory, addon_path):
             continue
-        # Remove addon if not used
-        if (subdirectory, directory) not in addons:
-            logger.info("Removing subdirectory %s", subfull)
-            shutil.rmtree(subfull)
+    # Remove every other directory
+    logger.info("Removing directory %s", directory)
+    shutil.rmtree(directory)
