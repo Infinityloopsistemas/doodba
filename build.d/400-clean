@@ -14,6 +14,7 @@ from doodbalib import (
     logger,
     MANIFESTS,
     ODOO_DIR,
+    PRIVATE_DIR,
     SRC_DIR,
 )
 
@@ -33,7 +34,7 @@ logger.debug("Addon paths enabled: %s", repos_addons)
 for directory, subdirectories, subfiles in os.walk(SRC_DIR):
     logger.debug("Checking for cleanup directory %s", directory)
     # Skip main src directory
-    if directory == SRC_DIR:
+    if directory in {SRC_DIR, PRIVATE_DIR}:
         continue
     # Inside the odoo dir, skip all but addons dir
     if directory == ODOO_DIR:
@@ -44,7 +45,8 @@ for directory, subdirectories, subfiles in os.walk(SRC_DIR):
         enabled_addons = repos_addons[directory]
     except KeyError:
         # This isn't a repo; is there anything inside to preserve?
-        if any(is_inside(repo, directory) for repo in repos_addons):
+        directory += os.path.sep
+        if any(repo.startswith(directory) for repo in repos_addons):
             # Then, let's walk in; we'll remove later if needed
             continue
     else:

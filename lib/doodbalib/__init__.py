@@ -173,27 +173,6 @@ def addons_config(filtered=True, strict=False):
         yield addon, repos.pop()
 
 
-def is_inside(child, parent, or_equal=True):
-    """Check that :param:`child` is inside of :param:`parent`.
-
-    :param str child:
-        Full path to a file that should be inside :param:`parent`.
-
-    :param str parent:
-        Full path to a directory that should contain :param:`child`.
-
-    :param bool or_equal:
-        Will return ``True`` if :param:`child` and :param:`parent`
-        are the same directory.
-
-    :return bool:
-        Indicates if it really is a subfile.
-    """
-    if or_equal and parent == child:
-        return True
-    return child.startswith(parent + os.path.sep)
-
-
 try:
     from shutil import which
 except ImportError:
